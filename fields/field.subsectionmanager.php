@@ -627,5 +627,20 @@
 			
 		}*/
 
+		public function buildDSRetrivalSQL($data, &$joins, &$where, $andOperation=false){
+			$field_id = $this->get('id');
+
+			if($andOperation):
+				foreach($data as $key => $bit){
+					$joins .= " LEFT JOIN `tbl_entries_data_$field_id` AS `t$field_id$key` ON (`e`.`id` = `t$field_id$key`.entry_id) ";
+					$where .= " AND `t$field_id$key`.relation_id = '$bit' ";
+				}
+			else:
+				$joins .= " LEFT JOIN `tbl_entries_data_$field_id` AS `t$field_id` ON (`e`.`id` = `t$field_id`.entry_id) ";
+				$where .= " AND `t$field_id`.relation_id IN ('".@implode("', '", $data)."') ";
+			endif;
+
+			return true;
+		}
 
 	}

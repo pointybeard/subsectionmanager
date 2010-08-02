@@ -9,7 +9,7 @@
 			return array(
 				'name' => 'Subsection Manager',
 				'type' => 'Field, Interface',
-				'version' => '1.0dev',
+				'version' => '1.0RC1',
 				'release-date' => false,
 				'author' => array(
 					'name' => 'Nils Hörrmann',
@@ -76,7 +76,6 @@
 
 			// Append styles and javascript for mediasection display
 			if($callback['driver'] == 'publish' && ($callback['context']['page'] == 'edit' || $callback['context']['page'] == 'new')) {
-					Administration::instance()->Page->addScriptToHead(URL . '/extensions/subsectionmanager/assets/symphony.subsection.js', 100, false);
 					Administration::instance()->Page->addStylesheetToHead(URL . '/extensions/subsectionmanager/assets/symphony.subsection.css', 'screen', 101, false);
 			}
 		}
@@ -182,8 +181,8 @@
 					`filter_tags` text,
 					`caption` text,
 					`included_fields` text,
-					`allow_multiple_selection` enum('yes','no') NOT NULL default 'yes',
-					`show_preview` enum('yes','no') NOT NULL default 'yes',
+					`allow_multiple` tinyint(1) default '0',
+					`show_preview` tinyint(1) default '0',
 			  		PRIMARY KEY  (`id`),
 			  		KEY `field_id` (`field_id`)
 				)"
@@ -197,7 +196,19 @@
 					PRIMARY KEY (`id`)
 				)"
 			);
-			if($fields && $sorting) return true;
+			$stage = Administration::instance()->Database->query(
+				"CREATE TABLE IF NOT EXISTS `tbl_fields_stage` (
+				  `id` int(11) unsigned NOT NULL auto_increment,
+				  `field_id` int(11) unsigned NOT NULL default '0',
+				  `constructable` smallint(1) default '0',
+				  `destructable` smallint(1) default '0',
+				  `draggable` smallint(1) default '0',
+				  `droppable` smallint(1) default '0',
+				  `searchable` smallint(1) default '0',
+				  PRIMARY KEY  (`id`)
+				) TYPE=MyISAM;"
+			);
+			if($fields && $sorting && $stage) return true;
 			else return false;
 		}
 

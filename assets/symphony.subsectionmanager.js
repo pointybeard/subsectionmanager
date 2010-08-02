@@ -73,7 +73,7 @@
 				var source = iframe.attr('target') + '/{$action}/{$id}' ;
 				var id = item.attr('value');
 				
-				if(!item.next('li').hasClass('drawer')) {
+				if(!item.next('li:not(.template)').hasClass('drawer')) {
 						
 					// Setup source
 					if(create) {
@@ -94,9 +94,23 @@
 					
 					// Handle iframe
 					iframe.load(function(event) {
-					
+						
+						var contents = iframe.contents();
+						
+						// Remove unneeded elements
+						contents.find('body').addClass('subsection');
+						contents.find('h1').remove();
+						contents.find('h2').remove();
+						contents.find('#nav').remove();
+						contents.find('#usr').remove();
+						contents.find('#notice:not(.error):not(.success)').remove();
+						contents.find('#notice a').remove();
+						
+						// Focus first input field
+						contents.find('input:first').focus();
+						
 						// Set frame and drawer height
-						var height = jQuery(this.contentDocument.body).find('form').outerHeight();
+						var height = contents.find('form').outerHeight();
 						iframe.height(height).animate({
 							opacity: 1
 						}, 'fast');
@@ -105,34 +119,33 @@
 						}, settings.speed);
 						
 						// Fetch saving
-						iframe.contents().find('div.actions input').click(function() {
+						contents.find('div.actions input').click(function() {
 							iframe.animate({
 								opacity: 0.01
 							}, 'fast');
 						})
 						
 						// Update item 
-						if(iframe.contents().find('#notice.success').size() > 0) {
+						if(contents.find('#notice.success').size() > 0) {
 							update(item.attr('value'), item, iframe, create);
 						}
 											
 						// Delete item
-						var remove = iframe.contents().find('button.confirm');
+						var remove = contents.find('button.confirm');
 						remove.die('click').unbind();
 						remove.click(function(event) {
 							erase(event, id);
 						});
 						
 						// Focus first input
-						iframe.contents().find('fieldset input:first').focus();
+						contents.find('fieldset input:first').focus();
 						
 					});
 				
 					// Automatically hide drawer later
 					if(!create) {
 						jQuery('body').bind('click', function(event) {
-
-							if(jQuery(event.target).parents().filter('li.active, li.drawer, li.new').size() == 0) {
+							if(jQuery(event.target).parents().filter('li.active, li.drawer, li.new, ul.selection').size() == 0) {						
 								object.find('div.stage li.active').removeClass('active');
 								object.find('div.stage li.drawer:not(.create):not(.template)').slideUp('normal', function(element) {
 									jQuery(this).remove();
@@ -346,9 +359,14 @@
 				
 					// Initialize stage for subsections
 					jQuery(document).ready(function() {
-						object.find('div.stage').symphonyStage({
+						var stage = object.find('div.stage');
+						stage.symphonyStage({
 							source: object.find('select'),
-							draggable: true,
+							draggable: stage.hasClass('draggable'),
+							droppable: stage.hasClass('droppable'),
+							constructable: stage.hasClass('constructable'),
+							destructable: stage.hasClass('destructable'),
+							searchable: stage.hasClass('searchable'),
 							dragclick: function(item) {
 								if(!item.hasClass('message')) {
 									edit(item);
@@ -360,7 +378,7 @@
 									id: id, 
 									section: section 
 								}
-							}
+							}						
 						});
 					});
 
